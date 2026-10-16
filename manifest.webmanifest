@@ -1,0 +1,22 @@
+{
+  "name": "AURELIX",
+  "short_name": "AURELIX",
+  "description": "Apex-tier procedural wallpaper studio. Cinematic lock screens for iPhone, iPad, Samsung and more.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en",
+  "categories": ["graphics", "photo", "utilities", "entertainment"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "prefer_related_applications": false
+}
