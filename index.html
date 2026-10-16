@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>AURELIX</title>
+
+<!-- PWA / Mobile App -->
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Apex-tier procedural wallpaper studio. Create cinematic lock screens for iPhone, iPad, Samsung and more.">
+<meta name="application-name" content="AURELIX">
+
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AURELIX">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon.svg">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon.svg">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+
+<!-- Android / Chrome -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- Icons -->
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Audiowide&family=Exo+2:wght@600&family=Michroma&family=Orbitron:wght@600;700&family=Oxanium:wght@600&family=Rajdhani:wght@600&family=Space+Grotesk:wght@600&family=Syncopate:wght@700&family=Zen+Dots&family=Bruno+Ace&family=Chakra+Petch:wght@600&family=Electrolize&family=Quantico:wght@700&family=Saira:wght@600&family=Tomorrow:wght@600&family=Goldman:wght@700&family=Jura:wght@600&family=Russo+One&family=Aldrich&family=Nova+Square&family=Iceland&family=Turret+Road:wght@700&display=swap">
+<style>
+/* App-like polish */
+html, body { overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
+body { -webkit-user-select: none; user-select: none; }
+.stage, canvas, .frame { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+
+/* Install banner */
+#installBar {
+  display: none;
+  position: fixed;
+  left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  padding: 12px 14px;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+#installBar.show { display: flex; }
+#installBar img { width: 44px; height: 44px; border-radius: 12px; }
+#installBar .txt { flex: 1; min-width: 0; }
+#installBar .txt strong { display: block; font-size: 15px; font-weight: 600; }
+#installBar .txt span { font-size: 12px; color: var(--dim); }
+#installBar button {
+  border: 0; border-radius: 12px; min-height: 36px; padding: 0 14px;
+  font: 600 14px inherit; background: var(--tint); color: #fff; cursor: pointer;
+}
+#installBar .x {
+  background: transparent; color: var(--dim); font-size: 20px; padding: 0 6px; min-height: auto;
+}
+
+/* Subtle first-load splash */
+#splash {
+  position: fixed; inset: 0; z-index: 30;
+  background: #000; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px;
+  transition: opacity .45s ease, visibility .45s;
+}
+#splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+#splash .logo {
+  width: 88px; height: 88px; border-radius: 22px;
+  background: radial-gradient(circle at 40% 35%, #5AC8FA, #0A84FF 55%, #003d7a);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 20px 50px rgba(10,132,255,.35);
+}
+#splash h2 {
+  margin: 0; font: 700 22px/1.1 Orbitron, system-ui, sans-serif;
+  letter-spacing: .18em; color: #F5F5F7;
+}
+
+:root{--bg:#F2F2F7;--glass:rgba(255,255,255,.74);--edge:rgba(0,0,0,.07);--ink:#1D1D1F;--dim:#6E6E73;--tint:#007AFF;--track:rgba(120,120,128,.22);color-scheme:light;--disp:Orbitron;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--glass:rgba(44,44,46,.66);--edge:rgba(255,255,255,.09);--ink:#F5F5F7;--dim:#98989F;--tint:#0A84FF;--track:rgba(120,120,128,.4);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000;--glass:rgba(44,44,46,.66);--edge:rgba(255,255,255,.09);--ink:#F5F5F7;--dim:#98989F;--tint:#0A84FF;--track:rgba(120,120,128,.4);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Noto Sans Arabic","Noto Sans JP","Noto Sans KR","Noto Sans SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 48px}
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--edge);border-radius:24px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:4px 2px 16px}
+h1{margin:0;font:700 36px/1.1 var(--disp),system-ui,sans-serif;letter-spacing:.12em}
+.sub{color:var(--dim);font-size:11px;font-weight:600;letter-spacing:.28em;margin-top:8px}
+select{font:500 14px inherit;font-family:inherit;color:var(--ink);background:var(--glass);border:1px solid var(--edge);border-radius:99px;padding:8px 12px;min-height:36px}
+.seg{display:flex;background:var(--track);border-radius:10px;padding:2px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);font:500 13px inherit;font-family:inherit;padding:7px 4px;border-radius:8px;min-height:32px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--glass);box-shadow:0 1px 4px rgba(0,0,0,.25);font-weight:600}
+.scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 2px 4px}#tabs{overflow-x:auto;scrollbar-width:none}#tabs button{flex:none;padding:7px 14px}
+.chip{flex:none;border:0;background:var(--track);color:var(--ink);font:500 14px inherit;font-family:inherit;padding:8px 14px;border-radius:99px;min-height:36px;cursor:pointer}
+.chip.on{background:var(--tint);color:#fff}
+.stage{margin:12px 0;padding:22px 14px;display:flex;justify-content:center;align-items:center;min-height:240px;background:#000;border-radius:28px}
+.frame{display:inline-block;line-height:0;overflow:hidden;border:5px solid #1c1c1e;box-shadow:0 0 0 1px #3a3a3c,0 24px 60px rgba(10,132,255,.25)}
+canvas{display:block;max-width:100%;max-height:54vh;width:auto;height:auto}
+.read{display:flex;justify-content:space-between;color:var(--dim);font-size:13px;margin:0 6px 12px}
+.acts{display:flex;gap:10px;margin-bottom:14px}
+.btn{flex:1;border:0;border-radius:14px;min-height:48px;font:600 16px inherit;font-family:inherit;cursor:pointer;color:var(--ink);background:var(--glass);border:1px solid var(--edge)}
+.btn.pri{background:var(--tint);color:#fff;border-color:transparent}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+.panel{padding:6px 18px 14px;margin-top:12px}
+.tool{display:grid;grid-template-columns:1fr auto;row-gap:6px;padding:12px 0;border-bottom:1px solid var(--edge)}
+.tool:last-child{border:0}
+.tool output{color:var(--dim);font-variant-numeric:tabular-nums}
+.tool input{grid-column:1/-1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:linear-gradient(to var(--ed,right),var(--tint) var(--p,50%),var(--track) var(--p,50%));margin:10px 0}
+input[type=range].hue{background:linear-gradient(to var(--ed,right),#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.sr{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--edge)}
+.sw{-webkit-appearance:none;appearance:none;width:51px;height:31px;border-radius:99px;background:var(--track);position:relative;flex:none;cursor:pointer;transition:background .2s;margin:0}
+.sw::after{content:"";position:absolute;top:2px;inset-inline-start:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:transform .2s}
+.sw:checked{background:#34C759}.sw:checked::after{transform:translateX(20px)}
+[dir=rtl] .sw:checked::after{transform:translateX(-20px)}
+.fonts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0}
+.fonts .chip{border-radius:14px;font-size:17px;padding:14px 10px;text-align:center}
+#shot{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;z-index:9;color:#F5F5F7;text-align:center}
+#shot img{max-width:100%;max-height:68vh;border-radius:16px}
+#shot button{background:#2c2c2e;color:#F5F5F7;border:0;border-radius:99px;padding:10px 22px;font:600 16px inherit;font-family:inherit;min-height:44px}
+@media (prefers-reduced-motion:reduce){.sw,.sw::after{transition:none}}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="logo"></div>
+  <h2>AURELIX</h2>
+</div>
+
+<div id="installBar" role="dialog" aria-label="Install AURELIX">
+  <img src="icons/icon.svg" alt="">
+  <div class="txt"><strong>Install AURELIX</strong><span>Add to Home Screen for the full app experience</span></div>
+  <button id="installBtn">Install</button>
+  <button class="x" id="installX" aria-label="Dismiss">×</button>
+</div>
+
+<div class="wrap">
+<header><div><h1>AURELIX</h1><div class="sub" id="sub"></div></div><select id="lang" aria-label="Language"></select></header>
+<div class="seg" id="brands"></div>
+<div class="scroll" id="devs"></div>
+<div class="stage"><div class="frame" id="frame"><canvas id="cv" aria-label="Wallpaper preview"></canvas></div></div>
+<div class="read"><span id="rRes"></span><span id="rLoop"></span></div>
+<div class="acts"><button class="btn pri" id="still"></button></div>
+<div class="seg" id="tabs"></div>
+<div class="glass panel" id="panel"></div>
+</div>
+<div id="shot"><img id="shotImg" alt="Rendered wallpaper"><div id="hold"></div><button id="shotX" aria-label="Close">×</button></div>
+
+<script>
+const $=s=>document.querySelector(s),cv=$('#cv'),cx=cv.getContext('2d'),TAU=Math.PI*2;
+const DEV=[['Apple','iPhone 17 Pro Max',1320,2868,13,'island'],['Apple','iPhone 17 Pro',1206,2622,13,'island'],['Apple','iPhone 16',1179,2556,13,'island'],['Apple','iPad Pro 13″',2064,2752,4,''],['Apple','MacBook Pro 16″',3456,2234,2,''],['Apple','Apple Watch Ultra',410,502,22,''],['Samsung','Galaxy S25 Ultra',1440,3120,5,'punch'],['Samsung','Galaxy S25',1080,2340,10,'punch'],['Samsung','Galaxy Z Flip6',1080,2640,9,'punch'],['Samsung','Galaxy Z Fold6 inner',1856,2160,4,''],['Samsung','Galaxy Tab S10 Ultra',2960,1848,2,'']];
+const FONTS=['Orbitron','Exo 2','Michroma','Oxanium','Syncopate','Audiowide','Rajdhani','Space Grotesk','Zen Dots','Bruno Ace','Chakra Petch','Electrolize','Quantico','Saira','Tomorrow','Goldman','Jura','Russo One','Aldrich','Nova Square','Iceland','Turret Road'];
+const LANGS=[['en','English','en'],['es','Español','es'],['ja','日本語','ja'],['ko','한국어','ko'],['zh','中文','zh-CN'],['ar','العربية','ar']];
+const K='sub apple samsung scene grade layers motion play pause still roll hue glow stars exposure contrast saturation warmth grain vignette blend photo import clock zones font speed playhead hold nebula aurora orbit topo'.split(' ');
+const T={
+en:'Wallpaper studio|Apple|Samsung|Scene|Grade|Layers|Motion|Play loop|Pause loop|Render still|New seed|Hue|Glow|Stars|Exposure|Contrast|Saturation|Warmth|Grain|Vignette|Scene blend|Photo|Import photo|Clock preview|Safe zones|Typeface|Speed|Playhead|Press and hold the image to save it.|Nebula|Aurora|Orbit|Contours',
+es:'Estudio de fondos|Apple|Samsung|Escena|Ajustes|Capas|Movimiento|Reproducir bucle|Pausar bucle|Generar imagen|Nueva semilla|Tono|Brillo|Estrellas|Exposición|Contraste|Saturación|Calidez|Grano|Viñeta|Mezcla de escena|Foto|Importar foto|Vista del reloj|Zonas seguras|Tipografía|Velocidad|Cabezal|Mantén pulsada la imagen para guardarla.|Nebulosa|Aurora|Órbita|Contornos',
+ja:'壁紙スタジオ|Apple|Samsung|シーン|調整|レイヤー|モーション|ループ再生|一時停止|静止画を作成|新しいシード|色相|グロー|星|露出|コントラスト|彩度|色温度|粒状感|ビネット|シーンの合成|写真|写真を読み込む|時計プレビュー|セーフゾーン|書体|速度|再生位置|画像を長押しして保存します。|星雲|オーロラ|軌道|等高線',
+ko:'배경화면 스튜디오|Apple|Samsung|장면|보정|레이어|모션|반복 재생|일시정지|스틸 만들기|새 시드|색조|글로우|별|노출|대비|채도|색온도|그레인|비네트|장면 혼합|사진|사진 가져오기|시계 미리보기|안전 영역|서체|속도|재생 위치|이미지를 길게 눌러 저장하세요.|성운|오로라|궤도|등고선',
+zh:'壁纸工作室|Apple|Samsung|场景|调整|图层|动态|循环播放|暂停循环|生成静态图|新种子|色相|辉光|星星|曝光|对比度|饱和度|色温|颗粒|暗角|场景混合|照片|导入照片|时钟预览|安全区|字体|速度|播放头|长按图片即可保存。|星云|极光|轨道|等高线',
+ar:'استوديو الخلفيات|Apple|Samsung|المشهد|الضبط|الطبقات|الحركة|تشغيل التكرار|إيقاف التكرار|إنشاء صورة ثابتة|بذرة جديدة|درجة اللون|التوهج|النجوم|التعريض|التباين|التشبع|الدفء|الحبيبات|التظليل|دمج المشهد|الصورة|استيراد صورة|معاينة الساعة|المناطق الآمنة|الخط|السرعة|مؤشر التشغيل|اضغط مطولًا على الصورة لحفظها.|سديم|شفق|مدار|خطوط كنتورية'};
+for(const l in T)T[l]=T[l].split('|');
+K.push(...'optics overlay warp pix mirror glitch chroma bloom flare part grid radar holo scan hshift invert soft plasma lattice variant csize cpos'.split(' '));
+const X={en:'Optics|Overlays|Liquid warp|Pixelate|Symmetry|Glitch|Chromatic split|Neon bloom|Lens flare|Particles|Hologrid|Radar sweep|Hologram|Scanlines|Hue shift|Negative|Softness|Plasma|Lattice|Variation|Clock size|Clock position',es:'Óptica|Capas FX|Onda líquida|Pixelar|Simetría|Glitch|División cromática|Resplandor neón|Destello|Partículas|Holorrejilla|Barrido radar|Holograma|Líneas de barrido|Cambio de tono|Negativo|Suavidad|Plasma|Retícula|Variación|Tamaño del reloj|Posición del reloj',ja:'光学|オーバーレイ|リキッドワープ|ピクセル化|シンメトリー|グリッチ|色収差|ネオンブルーム|レンズフレア|パーティクル|ホログリッド|レーダー走査|ホログラム|走査線|色相シフト|ネガ|ソフト|プラズマ|格子|バリエーション|時計のサイズ|時計の位置',ko:'광학|오버레이|리퀴드 워프|픽셀화|대칭|글리치|색수차|네온 블룸|렌즈 플레어|파티클|홀로그리드|레이더 스윕|홀로그램|주사선|색조 이동|네거티브|부드러움|플라즈마|격자|변형|시계 크기|시계 위치',zh:'光学|叠加|液态扭曲|像素化|对称|故障|色散|霓虹光晕|镜头光斑|粒子|全息网格|雷达扫描|全息|扫描线|色相偏移|负片|柔化|等离子|晶格|变化|时钟大小|时钟位置',ar:'البصريات|التراكبات|التواء سائل|بكسلة|تناظر|خلل رقمي|انفصال لوني|توهج نيون|وهج العدسة|جسيمات|شبكة ثلاثية الأبعاد|مسح الرادار|هولوغرام|خطوط المسح|إزاحة اللون|سلبي|نعومة|بلازما|شبكة|تنويع|حجم الساعة|موضع الساعة'};
+for(const l in X)T[l]=T[l].concat(X[l].split('|'));
+const FXK=['warp','pix','mirror','glitch','chroma','bloom','flare','part','grid','radar','holo','scan'];
+const PRE={Cyberpunk:{scene:'lattice',hue:85,glow:80,chroma:30,bloom:55,glitch:20,scan:30,grid:40},'Deep space':{scene:'nebula',hue:60,glow:60,stars:70,bloom:35,chroma:8,flare:30,part:35},Vaporwave:{scene:'plasma',hue:88,bloom:40,grid:70,holo:30,chroma:15,scan:20},'Mission control':{scene:'orbit',hue:55,radar:70,scan:25,bloom:25,chroma:5,part:15},Hologram:{scene:'aurora',hue:50,holo:70,mirror:40,chroma:20,part:30,bloom:40},Reset:{scene:'nebula',chroma:0,bloom:0,part:0}};
+const nl=(navigator.language||'en').slice(0,2);
+const S={lang:T[nl]?nl:'en',brand:'Apple',dev:0,scene:'nebula',seed:7,hue:58,glow:55,stars:50,exp:50,con:55,sat:58,warm:50,grain:20,vig:40,blend:70,speed:40,pp:0,csize:50,cpos:50,warp:0,pix:0,mirror:0,glitch:0,chroma:10,bloom:30,flare:0,part:25,grid:0,radar:0,holo:0,scan:0,hshift:0,invert:0,soft:0,scOn:true,photo:null,photoOn:true,clock:true,zones:false,play:false,font:'Orbitron',tab:'scene'};
+const t=k=>(T[S.lang]||T.en)[K.indexOf(k)];
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let x=Math.imul(a^a>>>15,1|a);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
+const HU=()=>S.hue*3.6,dur=()=>Math.max(4,Math.round(30-.26*S.speed));
+const N=document.createElement('canvas');N.width=N.height=128;{const g=N.getContext('2d'),d=g.createImageData(128,128);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}g.putImageData(d,0,0)}
+const PAT=cx.createPattern(N,'repeat');
+
+function stars(c,w,h,ph,r,n){n=Math.round(n*S.stars/50);for(let i=0;i<n;i++){const x=r()*w,y=r()*h,s=r()*1.5+.3,tw=.5+.5*Math.sin(ph*(1+i%3)+i);c.fillStyle=`rgba(255,255,255,${.25+.75*tw})`;c.shadowColor=`hsl(${HU()},100%,80%)`;c.shadowBlur=S.glow/6*s;c.beginPath();c.arc(x,y,s,0,7);c.fill()}c.shadowBlur=0}
+function base(c,w,h,a,b){if(S.photo&&S.photoOn)return;const g=c.createLinearGradient(0,0,w*.4,h);g.addColorStop(0,a);g.addColorStop(1,b);c.fillStyle=g;c.fillRect(0,0,w,h)}
+const PL=document.createElement('canvas'),plx=PL.getContext('2d');
+const SC={
+nebula(c,w,h,ph,r){const H=HU();base(c,w,h,`hsl(${H},60%,5%)`,`hsl(${H+40},50%,13%)`);c.globalCompositeOperation='screen';const m=Math.max(w,h);for(let i=0;i<7;i++){const x=r()*w+Math.sin(ph+i)*w*.04,y=r()*h+Math.cos(ph*(1+i%2)+i)*h*.03,d=(.25+r()*.4)*m,hu=H+r()*80-20,g=c.createRadialGradient(x,y,0,x,y,d);g.addColorStop(0,`hsla(${hu},90%,55%,.38)`);g.addColorStop(1,`hsla(${hu},90%,40%,0)`);c.fillStyle=g;c.fillRect(0,0,w,h)}c.globalCompositeOperation='source-over';stars(c,w,h,ph,r,240)},
+aurora(c,w,h,ph,r){const H=HU();base(c,w,h,`hsl(${H+20},55%,4%)`,`hsl(${H},45%,10%)`);c.globalCompositeOperation='screen';for(let i=0;i<6;i++){const y0=h*(.22+i*.07),amp=h*(.05+r()*.04);c.beginPath();c.moveTo(0,y0+h*.3);for(let x=0;x<=w;x+=10)c.lineTo(x,y0+Math.sin(x/w*(3+i)+ph*(1+i%2)+i)*amp);c.lineTo(w,y0+h*.3);c.closePath();const g=c.createLinearGradient(0,y0-amp,0,y0+h*.3);g.addColorStop(0,`hsla(${H+i*22},90%,60%,0)`);g.addColorStop(.25,`hsla(${H+i*22},90%,60%,.3)`);g.addColorStop(1,`hsla(${H+i*22},90%,50%,0)`);c.fillStyle=g;c.fill()}c.globalCompositeOperation='source-over';stars(c,w,h,ph,r,120)},
+orbit(c,w,h,ph,r){const H=HU(),m=Math.min(w,h);base(c,w,h,`hsl(${H},50%,4%)`,`hsl(${H+30},40%,9%)`);stars(c,w,h,ph,r,140);c.save();c.translate(w/2,h/2);const g=c.createRadialGradient(-m*.04,-m*.04,0,0,0,m*.17);g.addColorStop(0,`hsl(${H},80%,70%)`);g.addColorStop(1,`hsl(${H+20},70%,18%)`);c.shadowColor=`hsl(${H},100%,60%)`;c.shadowBlur=S.glow*.6;c.fillStyle=g;c.beginPath();c.arc(0,0,m*.16,0,7);c.fill();c.shadowBlur=0;for(let i=0;i<5;i++){c.save();c.rotate(-.5+i*.12);const a=m*(.26+i*.1),b=m*(.09+i*.035);c.strokeStyle=`hsla(${H+i*20},80%,70%,.35)`;c.lineWidth=1.2;c.beginPath();c.ellipse(0,0,a,b,0,0,7);c.stroke();const q=ph*(i%2?1:-1)+i*1.7;c.fillStyle='#fff';c.shadowColor=`hsl(${H},100%,70%)`;c.shadowBlur=S.glow/4;c.beginPath();c.arc(Math.cos(q)*a,Math.sin(q)*b,3.2,0,7);c.fill();c.restore()}c.restore();c.shadowBlur=0},
+plasma(c,w,h,ph,r){const H=HU(),sw=Math.ceil(w/6),sh=Math.ceil(h/6);PL.width=sw;PL.height=sh;const id=plx.createImageData(sw,sh),d=id.data;let i=0;for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const v=Math.sin(x*.09+ph)+Math.sin(y*.07-ph)+Math.sin((x+y)*.05+ph*2)+Math.sin(Math.hypot(x-sw/2,y-sh/2)*.1-ph),n=Math.pow((v+4)/8,1.6)*255;d[i++]=n;d[i++]=n;d[i++]=n;d[i++]=255}plx.putImageData(id,0,0);c.drawImage(PL,0,0,sw,sh,0,0,w,h);const g=c.createLinearGradient(0,0,w,h);g.addColorStop(0,`hsl(${H},95%,55%)`);g.addColorStop(1,`hsl(${H+90},95%,55%)`);c.globalCompositeOperation='color';c.fillStyle=g;c.fillRect(0,0,w,h);c.globalCompositeOperation='source-over';stars(c,w,h,ph,r,60)},
+lattice(c,w,h,ph){const H=HU();base(c,w,h,`hsl(${H},55%,4%)`,`hsl(${H+30},45%,10%)`);const cols=18,rows=Math.max(3,Math.round(cols*h/w)),gx0=w/(cols-1),gy0=h/(rows-1),P=[];for(let j=0;j<rows;j++){P[j]=[];for(let i=0;i<cols;i++)P[j][i]=[i*gx0+Math.sin(ph+j*.5+i*.3)*gx0*.35,j*gy0+Math.cos(ph*2+i*.4+j*.2)*gy0*.35]}c.lineWidth=1;c.strokeStyle=`hsla(${H},90%,65%,.4)`;c.beginPath();for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const p=P[j][i];if(i<cols-1){c.moveTo(p[0],p[1]);c.lineTo(P[j][i+1][0],P[j][i+1][1])}if(j<rows-1){c.moveTo(p[0],p[1]);c.lineTo(P[j+1][i][0],P[j+1][i][1])}}c.stroke();c.fillStyle='#fff';c.shadowColor=`hsl(${H},100%,70%)`;c.shadowBlur=S.glow/5;for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){c.beginPath();c.arc(P[j][i][0],P[j][i][1],2,0,7);c.fill()}c.shadowBlur=0},
+topo(c,w,h,ph){const H=HU();base(c,w,h,`hsl(${H},45%,5%)`,`hsl(${H+25},40%,10%)`);c.lineWidth=1.2;for(let k=0;k<48;k++){const y0=h*k/48;c.beginPath();for(let x=0;x<=w;x+=8){const y=y0+Math.sin(x*.008+k*.4+ph)*14+Math.sin(x*.021+k*.15-ph)*6;x?c.lineTo(x,y):c.moveTo(x,y)}c.strokeStyle=`hsla(${H+k*2},80%,65%,${k%6==0?.7:.25})`;c.stroke()}}};
+
+function guides(c,w,h,kind){c.save();c.lineWidth=1.5;c.setLineDash([6,5]);c.strokeStyle='rgba(255,255,255,.7)';c.fillStyle='rgba(10,132,255,.16)';c.beginPath();c.roundRect(w*.06,h*.07,w*.88,h*.3,14);c.fill();c.stroke();c.setLineDash([]);[.14,.86].forEach(x=>{c.beginPath();c.arc(w*x,h*.935,w*.065,0,7);c.stroke()});c.fillStyle='#000';c.beginPath();if(kind=='island')c.roundRect(w*.34,h*.013,w*.32,h*.042,99);else c.arc(w/2,h*.02,w*.018,0,7);c.fill();c.restore()}
+function clock(c,w,h){c.save();c.textAlign='center';c.fillStyle='#fff';c.shadowColor='rgba(0,0,0,.35)';c.shadowBlur=18;let f=w*.26*(.5+S.csize/100),cy=h*(.02+S.cpos/100*.5);c.font=`600 ${f}px "${S.font}",-apple-system,sans-serif`;const m=c.measureText('9:41').width;if(m>w*.82){f*=w*.82/m;c.font=`600 ${f}px "${S.font}",-apple-system,sans-serif`}c.fillText('9:41',w/2,cy);c.font=`500 ${w*.048}px -apple-system,"Noto Sans Arabic","Noto Sans JP","Noto Sans KR","Noto Sans SC",sans-serif`;const lc=LANGS.find(l=>l[0]==S.lang)[2];c.fillText(new Date().toLocaleDateString(lc,{weekday:'long',month:'long',day:'numeric'}),w/2,cy-f*.95);c.restore()}
+const FS=(sc=1)=>`brightness(${(50+S.exp)/100}) contrast(${(50+S.con)/100}) saturate(${S.sat*2/100}) hue-rotate(${S.hshift*3.6}deg) invert(${S.invert}%) blur(${(S.soft/100*5*sc).toFixed(2)}px)`;
+
+const mk=()=>{const e=document.createElement('canvas');return[e,e.getContext('2d')]};const [G,gx]=mk(),[H2,hx]=mk(),[B,bx]=mk(),[PX,pxx]=mk();
+function snap(){if(G.width!=cv.width||G.height!=cv.height){G.width=cv.width;G.height=cv.height}gx.clearRect(0,0,G.width,G.height);gx.drawImage(cv,0,0)}
+function FXpost(c,lw,lh,cw,ch){const ph=TAU*S.pp/100,sx=cw/lw,hu=HU();c.setTransform(1,0,0,1,0,0);c.globalCompositeOperation='source-over';c.globalAlpha=1;
+if(S.warp){snap();c.drawImage(G,0,0);const n=180,sh=ch/n,amp=cw*.03*S.warp/100;for(let i=0;i<n;i++){const y=i*sh;c.drawImage(G,0,y,cw,sh+1,Math.sin(i*.12+ph)*amp,y,cw,sh+1)}}
+if(S.pix){const bs=Math.max(2,(2+S.pix*.5)*sx),pw=Math.ceil(cw/bs),pH=Math.ceil(ch/bs);PX.width=pw;PX.height=pH;pxx.drawImage(cv,0,0,pw,pH);c.imageSmoothingEnabled=false;c.drawImage(PX,0,0,pw,pH,0,0,pw*bs,pH*bs);c.imageSmoothingEnabled=true}
+if(S.mirror){snap();c.save();c.globalAlpha=S.mirror/100;c.translate(cw,0);c.scale(-1,1);c.drawImage(G,0,0,cw/2,ch,0,0,cw/2,ch);c.restore()}
+if(S.glitch){snap();const r2=rng(Math.floor(S.pp/6)+S.seed),n=Math.round(S.glitch/100*14);for(let i=0;i<n;i++){const y=r2()*ch,hh=r2()*ch*.05+2,dx=(r2()-.5)*cw*.12*S.glitch/100;c.drawImage(G,0,y,cw,hh,dx,y,cw,hh)}}
+if(S.chroma){snap();if(H2.width!=cw||H2.height!=ch){H2.width=cw;H2.height=ch}const o=S.chroma/100*cw*.014;c.fillStyle='#000';c.fillRect(0,0,cw,ch);c.globalCompositeOperation='lighter';[['#f00',-o],['#0f0',0],['#00f',o]].forEach(([col,dx])=>{hx.globalCompositeOperation='source-over';hx.drawImage(G,0,0);hx.globalCompositeOperation='multiply';hx.fillStyle=col;hx.fillRect(0,0,cw,ch);c.drawImage(H2,dx,0)});c.globalCompositeOperation='source-over'}
+if(S.bloom){const bw=Math.max(2,Math.ceil(cw/12)),bh=Math.max(2,Math.ceil(ch/12));B.width=bw;B.height=bh;bx.drawImage(cv,0,0,bw,bh);c.globalCompositeOperation='screen';c.globalAlpha=S.bloom/100;c.drawImage(B,0,0,bw,bh,0,0,cw,ch);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+c.setTransform(sx,0,0,ch/lh,0,0);
+if(S.flare){const a=S.flare/100,x=lw*(.5+.3*Math.cos(ph)),y=lh*(.28+.1*Math.sin(ph)),m=Math.max(lw,lh);c.globalCompositeOperation='screen';let g=c.createRadialGradient(x,y,0,x,y,m*.22);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(.25,`hsla(${hu},100%,70%,${a*.5})`);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,lw,lh);c.save();c.translate(x,y);c.scale(1,.025);g=c.createRadialGradient(0,0,0,0,0,lw*.7);g.addColorStop(0,`hsla(${hu},100%,80%,${a*.8})`);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(-lw,-lw,lw*2,lw*2);c.restore();[.5,.9,1.4].forEach((k,i)=>{c.fillStyle=`hsla(${hu+i*40},100%,70%,${a*.18})`;c.beginPath();c.arc(x+(lw/2-x)*k,y+(lh/2-y)*k,m*(.02+i*.02),0,7);c.fill()});c.globalCompositeOperation='source-over'}
+if(S.part){const n=Math.round(S.part*2),r=rng(S.seed+99),f=S.pp/100;for(let i=0;i<n;i++){const x0=r()*lw,y0=r()*lh,sp=r()>.5?2:1,s=r()*2+.5,al=.2+r()*.6,y=((y0-f*sp*lh)%lh+lh)%lh;c.fillStyle=`hsla(${hu+r()*40},100%,85%,${al})`;c.shadowColor=`hsl(${hu},100%,70%)`;c.shadowBlur=S.glow/8;c.beginPath();c.arc(x0+Math.sin(ph*sp+i)*8,y,s,0,7);c.fill()}c.shadowBlur=0}
+if(S.grid){const a=S.grid/100,y0=lh*.6,f=(S.pp/100*3)%1;c.lineWidth=1.2;c.strokeStyle=`hsla(${hu},100%,65%,${a*.7})`;c.beginPath();for(let i=-12;i<=12;i++){c.moveTo(lw/2+i*lw*.015,y0);c.lineTo(lw/2+i*lw*.3,lh)}for(let j=0;j<16;j++){const q=(j+f)/16,y=y0+(lh-y0)*q*q;c.moveTo(0,y);c.lineTo(lw,y)}c.stroke();const g=c.createLinearGradient(0,y0,0,y0+lh*.12);g.addColorStop(0,`hsla(${hu},100%,70%,${a*.5})`);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,y0,lw,lh*.12)}
+if(S.radar){const a=S.radar/100,x=lw/2,y=lh*.5,R=Math.min(lw,lh)*.42;c.lineWidth=1;c.strokeStyle=`hsla(${hu},100%,70%,${a*.5})`;for(let k=1;k<=4;k++){c.beginPath();c.arc(x,y,R*k/4,0,7);c.stroke()}c.beginPath();c.moveTo(x-R,y);c.lineTo(x+R,y);c.moveTo(x,y-R);c.lineTo(x,y+R);c.stroke();for(let k=0;k<30;k++){c.fillStyle=`hsla(${hu},100%,60%,${a*.35*(1-k/30)})`;c.beginPath();c.moveTo(x,y);c.arc(x,y,R,ph-k*.03-.03,ph-k*.03);c.closePath();c.fill()}const r=rng(S.seed+5);c.fillStyle='#fff';for(let k=0;k<7;k++){const aa=r()*TAU,rr=R*(.2+r()*.75);c.globalAlpha=a*Math.max(0,1-(((ph-aa)%TAU+TAU)%TAU)/2.2);c.beginPath();c.arc(x+Math.cos(aa)*rr,y+Math.sin(aa)*rr,3,0,7);c.fill()}c.globalAlpha=1}
+if(S.holo){const g=c.createLinearGradient(0,0,lw,lh);for(let i=0;i<=5;i++)g.addColorStop(i/5,`hsl(${(S.pp*3.6+i*60)%360},100%,60%)`);c.globalCompositeOperation='overlay';c.globalAlpha=S.holo/100*.6;c.fillStyle=g;c.fillRect(0,0,lw,lh);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+if(S.scan){c.fillStyle=`rgba(0,0,0,${S.scan/100*.45})`;for(let y=0;y<lh;y+=3)c.fillRect(0,y,lw,1);const by=lh*(S.pp/100*1.3-.15),g=c.createLinearGradient(0,by-lh*.08,0,by+lh*.08);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,`rgba(255,255,255,${S.scan/100*.12})`);g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,by-lh*.08,lw,lh*.16)}
+c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+function draw(real){const d=DEV[S.dev],W=d[2],H=d[3],k=900/Math.max(W,H),lw=Math.round(W*k),lh=Math.round(H*k),cw=real?W:lw,ch=real?H:lh,c=cx;if(cv.width!=cw||cv.height!=ch){cv.width=cw;cv.height=ch}
+c.setTransform(cw/lw,0,0,ch/lh,0,0);c.globalCompositeOperation='source-over';c.globalAlpha=1;c.shadowBlur=0;c.fillStyle='#05070b';c.fillRect(0,0,lw,lh);
+const hasP=S.photo&&S.photoOn;if(hasP){const p=S.photo,q=Math.max(lw/p.width,lh/p.height),pw=p.width*q,pH=p.height*q;c.drawImage(p,(lw-pw)/2,(lh-pH)/2,pw,pH)}
+if(S.scOn){c.globalAlpha=hasP?S.blend/100:1;SC[S.scene](c,lw,lh,TAU*S.pp/100,rng(S.seed));c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+FXpost(c,lw,lh,cw,ch);const wm=S.warm-50;if(wm){c.fillStyle=`hsla(${wm>0?28:210},100%,55%,${Math.abs(wm)/50*.22})`;c.fillRect(0,0,lw,lh)}
+if(S.vig){const g=c.createRadialGradient(lw/2,lh/2,Math.min(lw,lh)*.3,lw/2,lh/2,Math.max(lw,lh)*.78);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${S.vig/100*.85})`);c.fillStyle=g;c.fillRect(0,0,lw,lh)}
+if(S.grain){c.globalCompositeOperation='overlay';c.globalAlpha=S.grain/100*.5;c.fillStyle=PAT;c.fillRect(0,0,lw,lh);c.globalAlpha=1;c.globalCompositeOperation='source-over'}
+if(!real){if(S.zones&&d[5])guides(c,lw,lh,d[5]);if(S.clock)clock(c,lw,lh);cv.style.filter=FS();const fr=$('#frame');fr.style.borderRadius=Math.round(Math.max(cv.clientWidth,40)*d[4]/100)+'px';$('#rRes').textContent=`${d[1]}  ${W} × ${H}`;$('#rLoop').textContent='PNG'}}
+
+let last=0;function tick(ts){const dt=Math.min((ts-last)/1000,.1);last=ts;if(S.play){S.pp=(S.pp+dt/dur()*100)%100;const s=$('[data-k=pp]');if(s){s.value=Math.round(S.pp);s.previousElementSibling.textContent=Math.round(S.pp)+'%';s.style.setProperty('--p',S.pp+'%')}draw()}requestAnimationFrame(tick)}
+
+const ed=()=>S.lang=='ar'?'left':'right';
+const tool=(k,lab,cls='')=>`<label class="tool"><span>${t(lab)}</span><output>${Math.round(S[k])}%</output><input type="range" class="${cls}" data-k="${k}" min="0" max="100" value="${Math.round(S[k])}" style="--p:${S[k]}%;--ed:${ed()}"></label>`;
+const sw=(k,lab,dis)=>`<div class="sr"><span>${t(lab)}</span><input type="checkbox" class="sw" data-sw="${k}" ${S[k]?'checked':''} ${dis?'disabled':''}></div>`;
+const chip=(v,l,on,a,st='')=>`<button class="chip ${on?'on':''}" ${a}="${v}" style="${st}">${l}</button>`;
+
+function render(){const L=LANGS.find(l=>l[0]==S.lang);document.documentElement.lang=S.lang;document.documentElement.dir=S.lang=='ar'?'rtl':'ltr';document.documentElement.style.setProperty('--disp',`"${S.font}"`);
+$('#sub').textContent='AN APEX TIER PRODUCT';$('#lang').innerHTML=LANGS.map(l=>`<option value="${l[0]}" ${l[0]==S.lang?'selected':''}>${l[1]}</option>`).join('');
+$('#brands').innerHTML=['Apple','Samsung'].map(b=>`<button class="${S.brand==b?'on':''}" data-brand="${b}">${b}</button>`).join('');
+$('#devs').innerHTML=DEV.map((d,i)=>d[0]==S.brand?chip(i,d[1],S.dev==i,'data-dev'):'').join('');
+$('#still').textContent=t('still');$('#hold').textContent=t('hold');
+const tabs=[['scene','scene'],['grade','grade'],['optics','optics'],['overlay','overlay'],['layers','layers'],['type','font']];
+$('#tabs').innerHTML=tabs.map(([i,k])=>`<button class="${S.tab==i?'on':''}" data-tab="${i}">${t(k)}</button>`).join('');
+let h='';
+if(S.tab=='scene')h=`<div class="scroll" style="padding-top:14px">${Object.keys(PRE).map(p=>chip(p,p,false,'data-preset')).join('')}</div><div class="scroll">${Object.keys(SC).map(k=>chip(k,t(k),S.scene==k,'data-sc')).join('')}</div>`+tool('hue','hue','hue')+tool('glow','glow')+tool('stars','stars')+tool('pp','variant')+`<div class="sr" style="border:0"><button class="chip" id="roll">${t('roll')}</button></div>`;
+if(S.tab=='grade')h=tool('exp','exposure')+tool('con','contrast')+tool('sat','saturation')+tool('warm','warmth')+tool('hshift','hshift','hue')+tool('invert','invert')+tool('soft','soft')+tool('grain','grain')+tool('vig','vignette');
+if(S.tab=='optics')h=['warp','pix','mirror','glitch','chroma','bloom','flare'].map(k=>tool(k,k)).join('');
+if(S.tab=='overlay')h=['part','grid','radar','holo','scan'].map(k=>tool(k,k)).join('');
+if(S.tab=='layers')h=sw('scOn','scene')+sw('photoOn','photo',!S.photo)+sw('clock','clock')+sw('zones','zones')+tool('blend','blend')+tool('csize','csize')+tool('cpos','cpos')+`<div class="sr" style="border:0"><label class="chip">${t('import')}<input id="file" type="file" accept="image/*" hidden></label></div>`;
+
+if(S.tab=='type')h=`<div class="fonts">${FONTS.map(f=>chip(f,f,S.font==f,'data-font',`font-family:'${f}',system-ui;font-weight:600`)).join('')}</div>`;
+$('#panel').innerHTML=h}
+
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+if(d.tab){S.tab=d.tab;render()}else if(d.brand){S.brand=d.brand;S.dev=DEV.findIndex(x=>x[0]==d.brand);render();draw()}
+else if(d.dev!==undefined){S.dev=+d.dev;render();draw()}else if(d.sc){S.scene=d.sc;render();draw()}
+else if(d.font){S.font=d.font;render();document.fonts.load(`600 40px "${S.font}"`).then(()=>draw());draw()}
+else if(d.preset){FXK.forEach(k=>S[k]=0);Object.assign(S,PRE[d.preset]);render();draw()}else if(b.id=='roll'){S.seed=Math.floor(Math.random()*9999);draw()}
+
+else if(b.id=='still'){draw(true);let src=cv;const o=document.createElement('canvas');o.width=cv.width;o.height=cv.height;const oc=o.getContext('2d');oc.filter=FS(Math.max(cv.width,cv.height)/900);if(oc.filter&&oc.filter!='none'){oc.drawImage(cv,0,0);src=o}$('#shotImg').src=src.toDataURL('image/png');draw(false);$('#shot').style.display='flex'}
+else if(b.id=='shotX')$('#shot').style.display='none'});
+document.addEventListener('input',e=>{const x=e.target;if(!x.dataset.k)return;S[x.dataset.k]=+x.value;x.previousElementSibling.textContent=x.value+'%';x.style.setProperty('--p',x.value+'%');draw()});
+document.addEventListener('change',e=>{const x=e.target;if(x.id=='lang'){S.lang=x.value;render();draw()}
+else if(x.dataset.sw){S[x.dataset.sw]=x.checked;draw()}
+else if(x.id=='file'&&x.files[0]){const im=new Image();im.onload=()=>{S.photo=im;S.photoOn=true;render();draw()};im.src=URL.createObjectURL(x.files[0])}});
+addEventListener('resize',()=>draw());
+render();draw();document.fonts.load('600 40px "Orbitron"').then(()=>draw());
+
+/* ─── PWA / Mobile App bootstrap ─── */
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true;
+
+// Hide splash once first frame is ready
+requestAnimationFrame(() => {
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    if (s) s.classList.add('hide');
+  }, 550);
+});
+
+// Light haptic feedback where supported
+const haptic = (ms = 8) => {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
+};
+
+// Wire haptic to primary actions
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button, .chip, .btn');
+  if (b) haptic(6);
+}, { passive: true });
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// Install prompt logic
+let deferredPrompt = null;
+const bar = document.getElementById('installBar');
+const installBtn = document.getElementById('installBtn');
+const installX = document.getElementById('installX');
+
+function showInstallBar() {
+  if (isStandalone || sessionStorage.getItem('aurelix-install-dismissed')) return;
+  if (bar) bar.classList.add('show');
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBar();
+});
+
+// iOS: show gentle tip if not installed
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if (isIOS && !isStandalone) {
+  // Delay so it doesn't fight the splash
+  setTimeout(showInstallBar, 1800);
+}
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    haptic(12);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (bar) bar.classList.remove('show');
+    } else if (isIOS) {
+      // iOS has no programmatic install — guide the user
+      alert('To install:\n1. Tap the Share button\n2. Scroll and choose “Add to Home Screen”');
+    }
+  });
+}
+
+if (installX) {
+  installX.addEventListener('click', () => {
+    if (bar) bar.classList.remove('show');
+    sessionStorage.setItem('aurelix-install-dismissed', '1');
+  });
+}
+
+// Keep theme-color in sync with system
+const updateThemeColor = () => {
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
+    if (m.media && m.media.includes('dark') && !dark) return;
+    if (m.media && m.media.includes('light') && dark) return;
+  });
+};
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
+</script>
+</body>
+</html>
